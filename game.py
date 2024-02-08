@@ -162,6 +162,7 @@ while running:
         #Space lenyomására minden játékadat resetelése
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
+            new_spawnrate = 800
             lives = 5
             star_speed = 4
             score = 0
