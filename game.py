@@ -3,29 +3,29 @@ import random
 
 
 def display_score():
-    score_surf = game_font.render("pontszám: " + str(score), True, FONT_COLOR)
-    score_rect = score_surf.get_rect(topleft=(10, 10))
+    score_surf = game_font.render("pontszám: " + str(score), True, BLUE)
+    score_rect = score_surf.get_rect(topright=(WIDTH - 10, 10))
     screen.blit(score_surf, score_rect)
 
 
 def display_final_score():
-    final_score_surf = game_font.render("PONTSZÁM: " + str(score), True, FONT_COLOR)
+    final_score_surf = game_font.render("PONTSZÁM: " + str(score), True, BLUE)
     final_score_rect = final_score_surf.get_rect(center=(WIDTH / 2, HEIGHT - 220))
     screen.blit(final_score_surf, final_score_rect)
 
 
 def display_time_left():
     time_left_surf = game_font.render(
-        "maradék idő: " + str(time_left), True, FONT_COLOR
+        "maradék idő: " + str(time_left), True, BLUE
     )
-    time_left_rect = time_left_surf.get_rect(topleft=(10, 50))
+    time_left_rect = time_left_surf.get_rect(topright=(WIDTH - 10, 50))
     screen.blit(time_left_surf, time_left_rect)
 
 
 WIDTH = 1280
 HEIGHT = 620
 STAR_SPEED = 4
-FONT_COLOR = (255, 255, 255)
+BLUE = (100, 100, 255)
 GAME_TIME = 10000
 
 pygame.init()
@@ -39,7 +39,7 @@ bg_rect = bg_surf.get_rect(bottomleft=(0, HEIGHT))
 
 star_surf = pygame.image.load("kepek/star.png").convert_alpha()
 star_surf = pygame.transform.rotozoom(star_surf, 0, 0.3)
-stars_rect = []
+stars_rect = [star_surf.get_rect(center=(random.randint(50, WIDTH - 50), HEIGHT - 60))]
 stars_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(stars_timer, 800)
 
@@ -48,9 +48,9 @@ sack_surf = pygame.transform.rotozoom(sack_surf, 0, 0.15)
 
 
 game_font = pygame.font.SysFont("arial", 30, bold=True)
-title_surf = game_font.render("CSILLAGVADÁSZAT", True, FONT_COLOR)
+title_surf = game_font.render("CSILLAGVADÁSZAT", True, BLUE)
 title_rect = title_surf.get_rect(center=(WIDTH / 2, 200))
-run_surf = game_font.render("Kezdéshez nyomd meg a szóközt!", True, FONT_COLOR)
+run_surf = game_font.render("Kezdéshez nyomd meg a szóközt!", True, BLUE)
 run_rect = run_surf.get_rect(center=(WIDTH / 2, HEIGHT - 150))
 
 start_time = pygame.time.get_ticks()
@@ -65,20 +65,21 @@ while running:
             sack_rect = sack_surf.get_rect(center=event.pos)
         if event.type == stars_timer:
             stars_rect.append(
-                star_surf.get_rect(center=(random.randint(50, WIDTH - 50), HEIGHT - 60))
+                star_surf.get_rect(center=(random.randint(50, WIDTH - 50), -80))
             )
 
     screen.blit(bg_surf, bg_rect)
 
     if game_active:
+
         for index, star_rect in enumerate(stars_rect):
-            stars_rect[index].bottom -= STAR_SPEED
+            stars_rect[index].top += STAR_SPEED
             mov_y = random.randint(0, 3)
             if mov_y == 0:
                 stars_rect[index].left -= 2
             else:
                 stars_rect[index].left += 2
-            if stars_rect[index].top <= -10:
+            if stars_rect[index].bottom >= HEIGHT + 10:
                 del stars_rect[index]
             if (
                 star_rect.collidepoint(pygame.mouse.get_pos())
@@ -87,8 +88,8 @@ while running:
                 del stars_rect[index]
                 score += 1
 
-        screen.blit(star_surf, star_rect)
-        screen.blit(sack_surf, sack_rect)
+            screen.blit(star_surf, star_rect)
+        screen.blit(sack_surf, sack_rect)        
 
         display_score()
 
