@@ -1,19 +1,19 @@
 import pygame
 import random
 
-
+#kiírja a pontszámot jaték közben
 def display_score():
     score_surf = game_font.render("pontszám: " + str(score), True, BLUE)
     score_rect = score_surf.get_rect(topright=(WIDTH - 10, 10))
     screen.blit(score_surf, score_rect)
 
-
+#kiírja a pontszámot és időt jaték után
 def display_final_score():
     final_score_surf = game_font.render("PONTSZÁM: " + str(score), True, BLUE)
     final_score_rect = final_score_surf.get_rect(center=(WIDTH / 2, HEIGHT - 220))
     screen.blit(final_score_surf, final_score_rect)
 
-
+#kiírja a időt jaték közben
 def display_time_left():
     time_left_surf = game_font.render(
         "maradék idő: " + str(time_left), True, BLUE
@@ -21,6 +21,7 @@ def display_time_left():
     time_left_rect = time_left_surf.get_rect(topright=(WIDTH - 10, 50))
     screen.blit(time_left_surf, time_left_rect)
 
+#kiírja a életek számát játék közben
 def display_lives_left():
     lives_left_surf = game_font.render(
         "Életek: " + str(lives), True, BLUE
@@ -28,21 +29,21 @@ def display_lives_left():
     lives_left_rect = lives_left_surf.get_rect(topleft=(10, 10))
     screen.blit(lives_left_surf, lives_left_rect)
 
-
+#legenerálja a hátteret
 def BG_Generation():
     bg_surf = pygame.image.load("kepek/background.jpg").convert_alpha()
     bg_surf = pygame.transform.rotozoom(bg_surf, 0, 0.5)
     bg_rect = bg_surf.get_rect(bottomleft=(0, HEIGHT))
     return bg_surf, bg_rect
 
-
+#Előkészíti a csillagokat a .blit()-elésre
 def STAR_Setup():
     star_surf = pygame.image.load("kepek/star.png").convert_alpha()
     star_surf = pygame.transform.rotozoom(star_surf, 0, 0.3)
     stars_rect = [star_surf.get_rect(center=(random.randint(50, WIDTH - 50), HEIGHT - 60))]
     return star_surf, stars_rect
 
-
+#Előkészíti a zsákot a .blit()-elésre
 def SACK_Setup():
     sack_surf = pygame.image.load("kepek/sack.png").convert_alpha()
     sack_surf = pygame.transform.rotozoom(sack_surf, 0, 0.10)
@@ -64,9 +65,11 @@ bg_surf, bg_rect = BG_Generation()
 
 star_surf, stars_rect = STAR_Setup()
 
+#A sebességnövelés EVENT-jének létrehozása és ütemezése
 speedup_timer = pygame.USEREVENT + 2
 pygame.time.set_timer(speedup_timer, 5000)
 
+#A csillagok megjelenítés EVENT-jének létrehozása és ütemezése
 start_spawnrate = 800
 new_spawnrate = 800
 stars_timer = pygame.USEREVENT + 1
@@ -74,6 +77,7 @@ pygame.time.set_timer(stars_timer, start_spawnrate)
 
 sack_surf = SACK_Setup()
 
+#Kezdőképernyő előkészítése .blit()-elésre
 game_font = pygame.font.SysFont("arial", 30, bold=True)
 title_surf = game_font.render("CSILLAGVADÁSZAT", True, BLUE)
 title_rect = title_surf.get_rect(center=(WIDTH / 2, 200))
@@ -137,6 +141,7 @@ while running:
         screen.blit(sack_surf, sack_rect)        
 
         display_score()
+
         #idő lejárásának chekkolása
         time_left = int((start_time + GAME_TIME - pygame.time.get_ticks()) / 1000)
         if time_left < 1:
@@ -146,12 +151,14 @@ while running:
         display_lives_left()
 
     else:
+        #A kezdőképernyő .blit()-elése
         screen.blit(title_surf, title_rect)
         screen.blit(star_surf, star_surf.get_rect(center=(WIDTH / 2, HEIGHT / 2)))
         screen.blit(run_surf, run_rect)
 
         if score:
             display_final_score()
+
         #Space lenyomására minden játékadat resetelése
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
@@ -162,6 +169,7 @@ while running:
             start_time = pygame.time.get_ticks()
             game_active = True
 
+    #játékablak frissítése
     pygame.display.update()
     clock.tick(60)
 
