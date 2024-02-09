@@ -47,7 +47,8 @@ def STAR_Setup():
 def SACK_Setup():
     sack_surf = pygame.image.load("kepek/sack.png").convert_alpha()
     sack_surf = pygame.transform.rotozoom(sack_surf, 0, 0.10)
-    return sack_surf
+    sack_rect = sack_surf.get_rect()
+    return sack_surf, sack_rect
 
 
 WIDTH = 1280
@@ -75,7 +76,7 @@ new_spawnrate = 800
 stars_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(stars_timer, start_spawnrate)
 
-sack_surf = SACK_Setup()
+sack_surf, sack_rect = SACK_Setup()
 
 #Kezdőképernyő előkészítése .blit()-elésre
 game_font = pygame.font.SysFont("arial", 30, bold=True)
