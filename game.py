@@ -11,7 +11,7 @@ def display_score():
 
 #kiírja a pontszámot és időt jaték után
 def display_final_score():
-    cur.execute(f"INSERT INTO leaderboard ({name}) VALUES ({score})")
+    cur.execute(f"INSERT INTO leaderboard VALUES ({UserName}, {score})")
     final_score_surf = game_font.render("PONTSZÁM: " + str(score), True, BLUE)
     final_score_rect = final_score_surf.get_rect(center=(WIDTH / 2, HEIGHT - 220))
     screen.blit(final_score_surf, final_score_rect)
@@ -114,15 +114,16 @@ con = sqlite3.connect("Leaderboard.db")
 cur = con.cursor()
 try:
     cur.execute("CREATE TABLE leaderboard(name, score)")
+    print("--DATABASE CREATED--")
 except:
-    pass
+    print("--DATABASE FOUND--")
 
 user_text = '' 
 input_rect = pygame.Rect(WIDTH//2 - 45, HEIGHT-90, 400, 50)  
 color_active = pygame.Color('lightskyblue3') 
-color_passive = pygame.Color('chartreuse4') 
+color_passive = BLUE 
 color = color_passive
-active = False
+input_active = False
 
 start_time = pygame.time.get_ticks()
 score = 0
@@ -142,9 +143,9 @@ while running:
         if not game_active:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if input_rect.collidepoint(event.pos):
-                    active = True
+                    input_active = True
                 else: 
-                    active = False
+                    input_active = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 game_active = False
@@ -165,21 +166,9 @@ while running:
         if event.type == speedup_timer:
             star_speed += 2
             new_spawnrate -= 50
-    
-    if active:
-        input_color = color_active
-    else:
-        input_color = color_passive
-
-    pygame.draw.rect(screen, color, input_rect)
-    text_surface = game_font.render(user_text, True, (255, 255, 255))
-    screen.blit(text_surface, (input_rect.x+5, input_rect.y+5)) 
-    input_rect.w = max(100, text_surface.get_width()+10) 
-    pygame.display.flip()
 
     screen.blit(bg_surf, bg_rect)
 
-    
 
     if game_active:
         #Életek számlálása
@@ -224,21 +213,37 @@ while running:
         screen.blit(run_surf, run_rect)
         bamm: dict[str, int] = {"gege": 45, "test": 33, "testver": 12, "csíí": 99}
         display_leaderboard(bamm)
-        # cur.execute("SELECT name, score FROM leaderboard ORDER BY score DESC")
+        cur.execute("SELECT name, score FROM leaderboard ORDER BY score DESC")
+        test = cur.fetchall()
+        print(test)
+
+        #Input rect és színe
+        if input_active:
+            input_color = color_active
+        else:
+            input_color = color_passive
+        pygame.draw.rect(screen, input_color, input_rect)
+        text_surface = game_font.render(user_text, True, (255, 255, 255))
+        screen.blit(text_surface, (input_rect.x+5, input_rect.y+5)) 
+        input_rect.w = max(100, text_surface.get_width()+10) 
+        pygame.display.flip()
+        
 
         if score:
             display_final_score()
 
         #Space lenyomására minden játékadat resetelése
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
-            new_spawnrate = 800
-            lives = 5
-            star_speed = 4
-            score = 0
-            stars_rect = []
-            start_time = pygame.time.get_ticks()
-            game_active = True
+        if not input_active:
+            if keys[pygame.K_SPACE]:
+                UserName = user_text
+                new_spawnrate = 800
+                lives = 5
+                star_speed = 4
+                score = 0
+                stars_rect = []
+                start_time = pygame.time.get_ticks()
+                game_active = True
 
     #játékablak frissítése
     pygame.display.update()
