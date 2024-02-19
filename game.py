@@ -41,6 +41,7 @@ def get_leader_info() -> list[tuple[str, int]]:
     return cur.fetchall()
 
 def display_leaderboard(leader_db: list[tuple[str, int]]):
+    printed_names: list[str] = []
     leader_surf = game_font.render(
         "Ranglista: ", True, BLUE
     )
@@ -48,14 +49,16 @@ def display_leaderboard(leader_db: list[tuple[str, int]]):
     screen.blit(leader_surf, leader_rect)
     i = 1
     for item in leader_db:
-        leader_surf = game_font.render(
-            str(i) + ".   " + str(item[0]) + "    " + str(item[1]), True, BLUE
-        )
+        if item[0] not in printed_names and i <= 10:
+            leader_surf = game_font.render(
+                str(i) + ".   " + str(item[0]) + "    " + str(item[1]), True, BLUE
+            )
 
-        leader_rect = leader_surf.get_rect(topright = (WIDTH-10, 50*i))
+            leader_rect = leader_surf.get_rect(topright = (WIDTH-10, 50*i))
 
-        screen.blit(leader_surf, leader_rect)
-        i+=1
+            screen.blit(leader_surf, leader_rect)
+            printed_names.append(item[0])
+            i+=1
 
 
 
@@ -255,7 +258,7 @@ while running:
         if not input_active:
             if keys[pygame.K_SPACE]:
                 game_time = 30000
-                UserName = user_text
+                UserName = user_text.replace(" ", "")
                 new_spawnrate = 800
                 lives = 5
                 star_speed = 4
