@@ -11,7 +11,6 @@ def display_score():
 
 #kiírja a pontszámot és időt jaték után
 def display_final_score():
-    cur.execute(f"INSERT INTO leaderboard VALUES ({UserName}, {score})")
     final_score_surf = game_font.render("PONTSZÁM: " + str(score), True, BLUE)
     final_score_rect = final_score_surf.get_rect(center=(WIDTH / 2, HEIGHT - 220))
     screen.blit(final_score_surf, final_score_rect)
@@ -32,16 +31,25 @@ def display_lives_left():
     lives_left_rect = lives_left_surf.get_rect(topleft=(10, 10))
     screen.blit(lives_left_surf, lives_left_rect)
 
-def display_leaderboard(leader_db: dict):
+def update_leader():
+    if len(UserName) > 2:
+        cur.execute(SQL_INSERT, (UserName, score))
+        con.commit()
+
+def get_leader_info() -> list[tuple]:
+    cur.execute(SQL_SELECT)
+    return cur.fetchall()
+
+def display_leaderboard(leader_db: list[tuple]):
     leader_surf = game_font.render(
         "Ranglista: ", True, BLUE
     )
     leader_rect = leader_surf.get_rect(topright = (WIDTH-10, 10))
     screen.blit(leader_surf, leader_rect)
     i = 1
-    for name, score in leader_db.items():
+    for item in leader_db:
         leader_surf = game_font.render(
-            str(i) + ".   " + str(name) + "    " + str(score), True, BLUE
+            str(i) + ".   " + str(item[0]) + "    " + str(item[1]), True, BLUE
         )
 
         leader_rect = leader_surf.get_rect(topright = (WIDTH-10, 50*i))
@@ -80,7 +88,7 @@ WIDTH = 1280
 HEIGHT = 620
 star_speed = 4
 BLUE = (100, 100, 255)
-GAME_TIME = 30000
+game_time = 30000
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -112,8 +120,12 @@ run_rect = run_surf.get_rect(center=(WIDTH / 2, HEIGHT - 150))
 
 con = sqlite3.connect("Leaderboard.db")
 cur = con.cursor()
+SQL_INSERT = "INSERT INTO leaderboard (name, score) VALUES (?, ?)"
+SQL_CREATE = "CREATE TABLE leaderboard(name, score)"
+SQL_SELECT = "SELECT name, score FROM leaderboard ORDER BY score DESC"
+
 try:
-    cur.execute("CREATE TABLE leaderboard(name, score)")
+    cur.execute(SQL_CREATE)
     print("--DATABASE CREATED--")
 except:
     print("--DATABASE FOUND--")
@@ -148,6 +160,8 @@ while running:
                     input_active = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
+                update_leader()
+                leaderboard_list = get_leader_info()
                 game_active = False
             if not game_active:
                 if event.key == pygame.K_BACKSPACE:
@@ -164,8 +178,8 @@ while running:
             )
         #Csillagok sebességének növelése
         if event.type == speedup_timer:
-            star_speed += 2
-            new_spawnrate -= 50
+            star_speed += 1.2
+            new_spawnrate -= 20
 
     screen.blit(bg_surf, bg_rect)
 
@@ -173,6 +187,8 @@ while running:
     if game_active:
         #Életek számlálása
         if lives <= 0:
+            update_leader()
+            leaderboard_list = get_leader_info()
             game_active = False
         #Csillagok kezelése
         for index, star_rect in enumerate(stars_rect):
@@ -192,6 +208,8 @@ while running:
             ):
                 del stars_rect[index]
                 score += 1
+                game_time += start_spawnrate-100
+
 
             screen.blit(star_surf, star_rect)
         screen.blit(sack_surf, sack_rect)        
@@ -199,8 +217,10 @@ while running:
         display_score()
 
         #idő lejárásának chekkolása
-        time_left = int((start_time + GAME_TIME - pygame.time.get_ticks()) / 1000)
+        time_left = int((start_time + game_time - pygame.time.get_ticks()) / 1000)
         if time_left < 1:
+            update_leader()
+            leaderboard_list = get_leader_info()
             game_active = False
         display_time_left()
 
@@ -208,14 +228,15 @@ while running:
 
     else:
         #A kezdőképernyő .blit()-elése
+        leaderboard_list = get_leader_info()
+        display_leaderboard(leaderboard_list)
+
         screen.blit(title_surf, title_rect)
         screen.blit(star_surf, star_surf.get_rect(center=(WIDTH / 2, HEIGHT / 2)))
         screen.blit(run_surf, run_rect)
-        bamm: dict[str, int] = {"gege": 45, "test": 33, "testver": 12, "csíí": 99}
-        display_leaderboard(bamm)
-        cur.execute("SELECT name, score FROM leaderboard ORDER BY score DESC")
-        test = cur.fetchall()
-        print(test)
+        
+        if score:
+            display_final_score()
 
         #Input rect és színe
         if input_active:
@@ -227,15 +248,13 @@ while running:
         screen.blit(text_surface, (input_rect.x+5, input_rect.y+5)) 
         input_rect.w = max(100, text_surface.get_width()+10) 
         pygame.display.flip()
-        
 
-        if score:
-            display_final_score()
 
         #Space lenyomására minden játékadat resetelése
         keys = pygame.key.get_pressed()
         if not input_active:
             if keys[pygame.K_SPACE]:
+                game_time = 30000
                 UserName = user_text
                 new_spawnrate = 800
                 lives = 5
@@ -249,4 +268,6 @@ while running:
     pygame.display.update()
     clock.tick(60)
 
+con.close()
 pygame.quit()
+quit()
