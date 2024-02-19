@@ -36,11 +36,11 @@ def update_leader():
         cur.execute(SQL_INSERT, (UserName, score))
         con.commit()
 
-def get_leader_info() -> list[tuple]:
+def get_leader_info() -> list[tuple[str, int]]:
     cur.execute(SQL_SELECT)
     return cur.fetchall()
 
-def display_leaderboard(leader_db: list[tuple]):
+def display_leaderboard(leader_db: list[tuple[str, int]]):
     leader_surf = game_font.render(
         "Ranglista: ", True, BLUE
     )
@@ -178,7 +178,7 @@ while running:
             )
         #Csillagok sebességének növelése
         if event.type == speedup_timer:
-            star_speed += 1.2
+            star_speed += 1
             new_spawnrate -= 20
 
     screen.blit(bg_surf, bg_rect)
